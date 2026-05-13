@@ -39,15 +39,15 @@ rm -rf %{buildroot}
 
 mkdir -p %{buildroot}/usr/sbin/
 mkdir -p %{buildroot}/usr/share/doc/%{name}-%{version}/examples/
-mkdir -p %{buildroot}/etc/init.d
+mkdir -p %{buildroot}/etc/rc.d/init.d/
 mkdir -p %{buildroot}/etc/udev/rules.d
 mkdir -p %{buildroot}/usr/lib/systemd/system
 
 cp %{SOURCE0} %{buildroot}/usr/sbin/xe-linux-distribution
 chmod 755 %{buildroot}/usr/sbin/xe-linux-distribution
 
-cp %{SOURCE1} %{buildroot}/etc/init.d/xe-linux-distribution
-chmod 755 %{buildroot}/etc/init.d/xe-linux-distribution
+cp %{SOURCE1} %{buildroot}/etc/rc.d/init.d/xe-linux-distribution
+chmod 755 %{buildroot}/etc/rc.d/init.d/xe-linux-distribution
 
 cp %{SOURCE3} %{buildroot}/usr/sbin/xe-daemon
 chmod 755 %{buildroot}/usr/sbin/xe-daemon
@@ -118,7 +118,7 @@ fi
 %files 
 %defattr(-,root,root,-)
 /usr/sbin/xe-linux-distribution
-/etc/init.d/xe-linux-distribution
+/etc/rc.d/init.d/xe-linux-distribution
 /usr/sbin/xe-daemon
 /etc/udev/rules.d/z10-xen-vcpu-hotplug.rules
 /usr/share/doc/%{name}-%{version}/LICENSE
