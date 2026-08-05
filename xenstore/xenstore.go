@@ -173,7 +173,10 @@ func do_xs_ls(xs xenstoreclient.XenStoreClient, path string, depth int) {
 		if n > (max_width - len(TAG) - col) {
 			n = (max_width - len(TAG) - col)
 		}
-		fmt.Printf(sub_path[:n])
+		if n < 0 {
+			n = 0
+		}
+		fmt.Print(sub_path[:n])
 		col += n
 
 		if len(newPath) >= STRING_MAX {
