@@ -3,13 +3,19 @@ PRODUCT_MINOR_VERSION=0
 PRODUCT_MICRO_VERSION=0
 PRODUCT_VERSION = $(PRODUCT_MAJOR_VERSION).$(PRODUCT_MINOR_VERSION).$(PRODUCT_MICRO_VERSION)
 
+MODULE = github.com/xenserver/xe-guest-utilities
+
 GO_BUILD = go build
 GO_FLAGS = -v
+GO_LDFLAGS = -X '$(MODULE)/guestmetric.ProductMajorVersion=$(PRODUCT_MAJOR_VERSION)' \
+             -X '$(MODULE)/guestmetric.ProductMinorVersion=$(PRODUCT_MINOR_VERSION)' \
+             -X '$(MODULE)/guestmetric.ProductMicroVersion=$(PRODUCT_MICRO_VERSION)' \
+             -X '$(MODULE)/guestmetric.NumericBuildNumber=$(RELEASE)'
 
 REPO = $(shell pwd)
 SOURCEDIR = $(REPO)/mk
 BUILDDIR = $(REPO)/build
-GOBUILDDIR = $(BUILDDIR)/gobuild
+VERSION_STAMP = $(BUILDDIR)/.version-$(PRODUCT_VERSION)-$(RELEASE)
 STAGEDIR = $(BUILDDIR)/stage
 OBJECTDIR = $(BUILDDIR)/obj
 DISTDIR = $(BUILDDIR)/dist
@@ -75,22 +81,19 @@ $(DISTDIR)/$(PACKAGE)_$(VERSION)-$(RELEASE)_$(ARCH).tgz: $(OBJECTS)
 	  tar zcf $@ * \
 	)
 
-$(OBJECTDIR)/xe-daemon: $(XE_DAEMON_SOURCES:%=$(GOBUILDDIR)/%)
+# Force a relink when the version or the commit count changes; the Go sources
+# themselves are unchanged, so nothing else would trigger it.
+$(VERSION_STAMP):
+	mkdir -p $(BUILDDIR)
+	rm -f $(BUILDDIR)/.version-*
+	touch $@
+
+$(OBJECTDIR)/xe-daemon: $(XE_DAEMON_SOURCES) $(VERSION_STAMP)
 	$(info ***** Build xe-daemon ******)
 	mkdir -p $(OBJECTDIR)
-	$(GO_BUILD) $(GO_FLAGS) -o $@ $<
+	$(GO_BUILD) $(GO_FLAGS) -ldflags "$(GO_LDFLAGS)" -o $@ ./xe-daemon
 
-$(OBJECTDIR)/xenstore: $(XENSTORE_SOURCES:%=$(GOBUILDDIR)/%) 
+$(OBJECTDIR)/xenstore: $(XENSTORE_SOURCES)
 	$(info ***** Build xenstore ******)
 	mkdir -p $(OBJECTDIR)
-	$(GO_BUILD) $(GO_FLAGS) -o $@ $<
-
-$(GOBUILDDIR)/%: $(REPO)/%
-	$(info ****** Replace product version for: [$<] *****)
-	mkdir -p $$(dirname $@)
-	cat $< | \
-	sed -e "s/@PRODUCT_MAJOR_VERSION@/$(PRODUCT_MAJOR_VERSION)/g" | \
-	sed -e "s/@PRODUCT_MINOR_VERSION@/$(PRODUCT_MINOR_VERSION)/g" | \
-	sed -e "s/@PRODUCT_MICRO_VERSION@/$(PRODUCT_MICRO_VERSION)/g" | \
-	sed -e "s/@NUMERIC_BUILD_NUMBER@/$(RELEASE)/g" \
-	> $@
+	$(GO_BUILD) $(GO_FLAGS) -o $@ ./xenstore

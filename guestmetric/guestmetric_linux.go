@@ -13,6 +13,17 @@ import (
 	"strings"
 )
 
+// Version information published under attr/PVAddons. Two build paths set these:
+// the top-level Makefile links them in with -ldflags -X, while the packaging
+// makefiles under mk/ substitute the @...@ markers textually. cmd/link only
+// honours -X on a var initialised to a constant string, so both stay valid.
+var (
+	ProductMajorVersion = "@PRODUCT_MAJOR_VERSION@"
+	ProductMinorVersion = "@PRODUCT_MINOR_VERSION@"
+	ProductMicroVersion = "@PRODUCT_MICRO_VERSION@"
+	NumericBuildNumber  = "@NUMERIC_BUILD_NUMBER@"
+)
+
 type Collector struct {
 	Client xenstoreclient.XenStoreClient
 	Ballon bool
@@ -47,10 +58,10 @@ func (c *Collector) CollectMisc() (GuestMetric, error) {
 		current["control/feature-balloon"] = "0"
 	}
 	current["attr/PVAddons/Installed"] = "1"
-	current["attr/PVAddons/MajorVersion"] = "@PRODUCT_MAJOR_VERSION@"
-	current["attr/PVAddons/MinorVersion"] = "@PRODUCT_MINOR_VERSION@"
-	current["attr/PVAddons/MicroVersion"] = "@PRODUCT_MICRO_VERSION@"
-	current["attr/PVAddons/BuildVersion"] = "@NUMERIC_BUILD_NUMBER@"
+	current["attr/PVAddons/MajorVersion"] = ProductMajorVersion
+	current["attr/PVAddons/MinorVersion"] = ProductMinorVersion
+	current["attr/PVAddons/MicroVersion"] = ProductMicroVersion
+	current["attr/PVAddons/BuildVersion"] = NumericBuildNumber
 
 	return current, nil
 }
